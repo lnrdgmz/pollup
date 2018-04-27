@@ -1,0 +1,42 @@
+<%- include('header', {title: 'Vote'}) %>
+  <h1>Time to Vote</h1>
+  <h2><%= poll.question %></h2>
+
+  <% if (currentVote.length > 0) { %>
+    <p>
+      Your vote has been recorded. You can see the results when voting concludes in 
+      <span class="countdown" data-time=<%= poll.voteTimeEnd %>>
+      <%= Math.ceil((poll.voteTimeEnd - Date.now()) / 60000) %> minutes</span>.
+       Voting again will replace your previous vote.</p>
+  <% } else  { %>
+    <p>
+      You have <%= Math.floor((poll.voteTimeEnd - Date.now()) / 60000) %> minutes to vote.
+      Select which as many options as you want to vote for, in your preferred order.
+    </p>
+  <% } 
+  %>
+  
+  <div>
+  <ul>
+  <% 
+  const shuffledChoices = shuffle(choices);
+  %>
+  <% shuffledChoices.forEach((option, index) => { %>
+  <li id="choice-<%= index %>" class="button" onclick="vote(event, `<%= option.text %>`)"><%= option.text %></li>
+  <% }); %>
+  </ul>
+  </div>
+  
+  <form id="ranked-choices" method="post" action="/<%- poll.code %>/vote">
+  <ol id="selected-list" class="with-default" data-placeholder="None selected"></ol>
+  <button type="submit">Submit</button>
+  </form>
+  
+  <script>
+  document.addEventListener("DOMContentLoaded", function(event) { 
+    initializeCountdown();
+    setReloadTimeout(<%= poll.voteTimeEnd %>);
+  }); 
+  </script>
+  
+  <%- include('footer') %>

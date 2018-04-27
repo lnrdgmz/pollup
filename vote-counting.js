@@ -1,0 +1,106 @@
+function tallyVotes (votes, options) {
+
+  options = options.map( o => o.text)
+
+  if (options.length === 1) {
+    const option = options[0];
+    const numberOfVotes = Object.values(votes).filter(rank => rank.includes(options[0])).length;
+    const percentageOfVotes = Object.keys(votes).length / numberOfVotes;
+
+    return { option, numberOfVotes, percentageOfVotes}
+  }
+  const voters = Object.keys(votes);
+
+  let remainingOptions = options.slice();
+  
+  // create a tally object
+  const tally = remainingOptions.reduce((acc, id) => Object.assign({[id]: 0}, acc), {})
+  
+  // iterate over voters
+  for (let voter of voters) {
+    // iterate over the ranked votes
+    for (let choice of votes[voter]) {
+      // if the vote is for an option that remains,
+      if (remainingOptions.includes(choice)) {
+        // increment the tally for that option
+        tally[choice]++;
+        // exit vote iteration
+        break;
+      }
+    }
+  }
+
+  // get highest vote count
+  const highestCount = Math.max(...Object.values(tally));
+  const winningOption = remainingOptions.reduce((acc, option) => {
+    if (tally[option] > tally[acc]) return option;
+    else return acc;
+  })
+  const tieForHighest = Object.values(tally).filter(e => e === highestCount).length > 1;
+
+  // if the highest vote count is a majority, return result object
+  if (!tieForHighest && highestCount >= voters.length / 2) {
+    return {
+      option: winningOption,
+      numberOfVotes: highestCount,
+      percentageOfVotes:  highestCount / voters.length,
+    }
+  } else {
+    // if not
+    const lowestCount = Math.min(...Object.values(tally));
+    // remove lowest vote counts
+    const updatedOptions = remainingOptions.filter(option => {
+      return tally[option] !== lowestCount;
+    })
+
+    // if highestCount and lowestCount are equal, recursing won't help.
+    if (highestCount === lowestCount) {
+      return tieBreaker(votes, options)
+    }
+
+    // recurse over updated options
+    return tallyVotes(votes, updatedOptions);
+  }
+}
+
+function tieBreaker(votes, options) {
+  const rankings = Object.values(votes);
+  const longestRankingLength = Math.max(...rankings.map(arr => arr.length));
+
+  // create tally object
+  const tally = options.reduce((acc, key) => Object.assign({[key]: 0}, acc), {})
+
+
+
+  // iterate over ranks (1st, 2nd, 3rd)
+  for (let i = 0; i < longestRankingLength; i++) {
+
+    // iterate over array of rankings
+    for (let ranking of rankings) {
+      // if the choice is in options, increment its tally
+      const choice = ranking[i];
+      if (choice && options.includes(choice)) {
+        tally[choice]++
+      }
+    }
+    // if a single choice is in the lead, return it
+    const totals = Object.values(tally);
+    const highestTotal = Math.max(...totals);
+    if (totals.filter(t => t === highestTotal).length === 1) {
+      const option = options.filter(o => tally[o] === highestTotal)[0];
+      const numberOfVotes = rankings.reduce((acc, ranking) => {
+        if (ranking.includes(option)) return acc + 1;
+        else return acc;
+      }, 0)
+      const percentageOfVotes = numberOfVotes / rankings.length;
+      return {
+        option,
+        numberOfVotes,
+        percentageOfVotes,
+      }
+    }
+  }
+  console.error('\n\n***\nOh shit, something went wrong.\n***\n')
+}
+
+module.exports = { tallyVotes }

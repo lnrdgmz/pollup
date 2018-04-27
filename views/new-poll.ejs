@@ -1,0 +1,56 @@
+<%- include('header', {title: 'Create a New Poll'}) %>
+
+<h1>Create a new poll</h1>
+
+<form action="/create" method="POST">
+  <!-- Question/poll name -->
+  <div class="input-group vertical">
+    <label for="poll-question">Question</label>
+    <input id='poll-question' name="poll-question" required autocomplete="off">
+  </div>
+
+  <!-- Initial options -->
+  <div class="input-group">
+    <label for="initial-option-input">
+        Initial options
+        <small>(optional)</small>
+    </label>
+    <ul id="initial-options-list" class="with-placeholder" data-placeholder="None"></ul>
+    <input id="initial-option-input" autocomplete="off">
+    <button type="button" id="initial-option-button">Add</button>
+  </div>
+
+
+  <!-- Number of participants -->
+  <!-- <div class="input-group vertical">
+    <label for="participants-input">
+        Number of participants
+        <small>
+          Specify the number of participants, if known. Doing so allows the vote to commence and end once everyone has participated.
+        </small>
+    </label>
+    <input id="participants-input" name="poll-participants" type="number" required min=1>
+  </div> -->
+
+  <!-- Maximum amount of time to allow for participants to submit options -->
+  <div class="input-group vertical">
+    <label for="submit-time-input">
+      Time allowed for additional options<small> (in minutes)<br>
+      During this time, others with access to the poll's URL will be able to add options. 
+        Setting this value to <code>0</code> will skip this process and voting will begin immediately</small>
+    </label>
+    <input id="submit-time-input" name="poll-submit-time" type="number" required min=0>
+  </div>
+
+  <!-- Maximum amount of time to allow for participants to vote -->
+  <div class="input-group vertical">
+    <label for="vote-time-input">
+      Time allowed for voting <small>In minutes<br>
+      This time will begin once the previous time has expired.</small>
+    </label>
+    <input id="vote-time-input" name="poll-vote-time" type="number" required min=1>
+  </div>
+  <button type="submit">Submit New Poll</button>
+</form>
+
+<%- include('footer') %>

@@ -1,0 +1,17 @@
+<%- include('header', {title: 'Results'}) %>
+<h1>Results</h1>
+
+<h2><%= poll.question %></h2>
+
+<% if (results.option && results.numberOfVotes) { %>
+
+<h2><%= results.option %><h2>
+<p>This choice won with <%= Math.round(results.percentageOfVotes * 100) %>% of the vote.</p>
+
+<p>Hooray democracy!</p>
+<% } else { %>
+  <span>¯\_(ツ)_/¯</span>
+<% } %>
+
+
+<%- include('footer') %>

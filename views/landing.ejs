@@ -1,0 +1,30 @@
+<%- include('header', {title: 'PollUp'}) %>
+
+  <h1>PollUp</h1>
+
+  <p>
+    Can you and your friends not decide on…
+  </p>
+  <ul>
+    <li>where to eat?</li>
+    <li>what movie to watch?</li>
+    <li>who has to run out for more beer?</li>
+  </ul>
+  <p>
+    Create a poll, vote, reach a consensus, and save your friendships!
+  </p>
+
+  <a href="/create" class="button">Create a new poll</a>
+  <p>
+    … or enter an existing poll's 4-letter code to go to that poll:
+  </p>
+
+  <form id='code-form'>
+    <fieldset>
+      <legend>Find an existing poll</legend>
+      <label for="code-input">Code</label>
+      <input id="code-input" name="poll-code" minlength='4' maxlength='4' required autocomplete="off">
+      <button type="submit" id="code-button">Go to poll</button>
+    </fieldset>
+  </form>
+<%- include('footer') %>

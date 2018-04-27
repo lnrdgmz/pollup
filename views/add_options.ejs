@@ -1,0 +1,48 @@
+<%- include('header', {title: 'Add Poll Options'}) %>
+<h1>
+  Nominate Choices
+  <Small>
+    <%= poll.question %>
+  </Small>
+</h1>
+
+<p>
+  This poll is open for suggestions for another 
+  <%= Math.floor((poll.submitTimeEnd - Date.now()) / 60000) %> minute(s). After that, you'll have
+  <%= Math.floor((poll.voteTimeEnd - poll.submitTimeEnd)) / 60000 %> minutes to cast your votes.
+</p>
+<% const url = `${hostname}/${poll.code}`; %>
+<p>Use poll code <code><%= poll.code %></code> to particpate, or go to <a href="/<%= poll.code %>"><%= url %></a>.</p>
+
+
+
+<!-- List current options here -->
+  <div>
+    <h2>Current Choices</h2>
+
+    <ul class="with-placeholder" data-placeholder="None"><!--
+    --><% choices.forEach(choice => { %>
+        <li><%= choice.text %></li>
+      <% }) %><!--
+    --></ul>
+
+  </div>
+
+  <!-- Form to add a new option -->
+  <form method="POST">
+    <h2>Your Suggestions</h2>
+    <ul id="new-choices-list" class="with-placeholder" data-placeholder="None"></ul>
+    <fieldset>
+      <legend>Enter your suggestion</legend>
+      <input id="new-choice-input" autocomplete="off">
+      <button id="add-option-button">
+        Add new option
+      </button>
+    </fieldset>
+    <button type="submit">
+      Submit
+    </button>
+  </form>
+
+
+<%- include('footer') %>

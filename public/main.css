@@ -1,0 +1,23 @@
+.with-placeholder:empty:before {
+  content: attr(data-placeholder);
+}
+.with-placeholder:empty{
+  padding-left: 0;
+}
+
+#new-choices-list:not(:empty):after {
+  content: "New suggestions won't be added until you click Submit below.";
+  position: relative;
+  left: -16px; /* TODO make this not hard-coded */
+}
+
+
+.close {
+  color: red !important;
+  text-decoration: none;
+}
+
+form li {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
