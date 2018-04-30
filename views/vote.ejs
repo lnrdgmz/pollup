@@ -5,12 +5,12 @@
   <% if (currentVote.length > 0) { %>
     <p>
       Your vote has been recorded. You can see the results when voting concludes in 
-      <span class="countdown" data-time=<%= poll.voteTimeEnd %>>
-      <%= Math.ceil((poll.voteTimeEnd - Date.now()) / 60000) %> minutes</span>.
+      <span class="countdown" data-time=<%= poll.vote_time_end %>>
+      <%= Math.ceil((poll.vote_time_end - Date.now()) / 60000) %> minutes</span>.
        Voting again will replace your previous vote.</p>
   <% } else  { %>
     <p>
-      You have <%= Math.floor((poll.voteTimeEnd - Date.now()) / 60000) %> minutes to vote.
+      You have <%= Math.floor((poll.vote_time_end - Date.now()) / 60000) %> minutes to vote.
       Select which as many options as you want to vote for, in your preferred order.
     </p>
   <% } 
@@ -35,7 +35,7 @@
   <script>
   document.addEventListener("DOMContentLoaded", function(event) { 
     initializeCountdown();
-    setReloadTimeout(<%= poll.voteTimeEnd %>);
+    setReloadTimeout(<%= poll.vote_time_end %>);
   }); 
   </script>
   

@@ -11,7 +11,6 @@ const router = Router();
 // }
 
 router.get('/', (req, res) => {
-  console.log(req.originalUrl)
   res.render('landing')
 })
 
@@ -28,28 +27,18 @@ router.post('/create', (req, res) => {
   const submissionsTime = parseInt(req.body['poll-submit-time'])
   const voteTime = parseInt(req.body['poll-vote-time'])
 
-  console.log('times submitted', submissionsTime, voteTime)
-
-  const pollObj = polls.addPoll({
+  return polls.addPoll({
     question: req.body['poll-question'],
     submitTimeEnd: minutesToMilliseconds(submissionsTime) + Date.now(),
     voteTimeEnd: minutesToMilliseconds(voteTime + submissionsTime) + Date.now(),
+    user: req.session.id,
+  })
+  .then(code => {
+    choices.addChoices(code, req.session.id, Array.isArray(options) ? options : [options])
+  
+    res.redirect('/' + code)
   })
 
-
-  choices.addChoices(pollObj.code, req.session.id, Array.isArray(options) ? options : [options])
-
-  // fakeDb.polls[code] = {
-  //   question: req.body['poll-question'],
-  //   // participants: req.body['poll-participants'],
-  //   submitTime: Date.now() + submissionsTime * 60000,
-  //   voteTime: Date.now() + (submissionsTime + voteTime) * 60000, // TODO fix this
-  //   options: Array.isArray(options) ? options : [options],
-  //   votes: {},
-  // }
-  // console.log(fakeDb.polls)
-
-  res.redirect('/' + pollObj.code)
 })
 
 function verifyCodeExists(req, res, next) {
@@ -71,19 +60,19 @@ function pollCodeMiddleware (req, res, next) {
 }
 router.use( /\/(\D\D\D\D)/, pollCodeMiddleware, pollRouter)
 
-pollRouter.get('/', verifyCodeExists, (req, res) => {
+pollRouter.get('/', verifyCodeExists, async function(req, res) {
   const code = req.pollCode;
-  const poll = polls.getPoll(code);
-  const pollChoices = choices.getChoices(code);
+
+  const poll = await polls.getPoll(code);
+  const pollChoices = await choices.getChoices(code);
 
   const time = Date.now();
 
-  if (time > poll.voteTimeEnd) {
-    const pollVotes = votes.getVotesForPoll(code);
-
-    const results = tallyVotes(pollVotes, pollChoices)
-    res.render('results', { results, poll })
-  } else if (time > poll.submitTimeEnd) {
+  if (time > poll.vote_time_end) {
+    const pollVotes = await votes.getVotesForPoll(code);
+    const results = tallyVotes(pollVotes, pollChoices.map(o => o.text));
+    res.render('results', { results, poll });
+  } else if (time > poll.submit_time_end) {
     // use vote handler
 
     // TODO figure out how to pass a context to template
@@ -139,15 +128,6 @@ pollRouter.post('/vote', verifyCodeExists, (req, res) => {
 
   res.redirect('/' + code);
 })
-
-
-// function addVotes(code, user, votes) {
-//   if (Array.isArray(votes)) {
-//     fakeDb.polls[code].votes[user] = votes;
-//   } else {
-//     fakeDb.polls[code].votes[user] = [votes];
-//   }
-// }
 
 
 module.exports = router;

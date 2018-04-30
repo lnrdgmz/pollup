@@ -1,44 +1,67 @@
-const polls = {};
+const db = require('./db');
+
 
 /**
  * 
  * @param {string} id 
  * @returns {object}
  */
-module.exports.getPoll = function (id) {
-  if (polls[id] === undefined) {
-    return {}
-  } else {
-    return polls[id];
-  }
+module.exports.getPoll = function (code) {
+  return db.query('SELECT * FROM polls WHERE code = $1', [code])
+    .then(res => res.rows[0]);
 }
 
 /**
  * 
  * @param {object} pollObj
- * @param {} pollObj.question
- * @param {} pollObj.submitTimeEnd
- * @param {} pollObj.voteTimeEnd
+ * @param {string} pollObj.question
+ * @param {string} pollObj.user
+ * @param {number} pollObj.submitTimeEnd
+ * @param {number} pollObj.voteTimeEnd
  */
-module.exports.addPoll =  function (pollObj) {
-  const code = generateUniqueCode();
-  pollObj.code = code;
-  polls[code] = pollObj;
-  console.log(polls)
-  return pollObj;
+module.exports.addPoll = function (pollObj) {
+  let code;
+  return generateUniqueCode()
+    .then(code0 => {
+      code = code0
+      return db.query(
+        'INSERT INTO polls (code, question, creator_id, submit_time_end, \
+          vote_time_end) VALUES ($1, $2, $3, $4, $5)',
+        [
+          code,
+          pollObj.question,
+          pollObj.user,
+          pollObj.submitTimeEnd,
+          pollObj.voteTimeEnd
+        ]
+      )
+    })
+    .then(res => code)
+    .catch(err => {
+      console.log('There was a problem adding a poll');
+      console.error(err);
+    })
 }
 
-function generateUniqueCode() {
+
+async function generateUniqueCode() {
   let code = randomCode();
-  while (polls[code] !== undefined) {
+  let exists = await pollExists(code);
+  while (exists) {
     code = randomCode();
+    exists = await pollExists(code);
   }
   return code;
 }
 
-module.exports.pollExists = function (pollId) {
-  return polls.hasOwnProperty(pollId);
+const pollExists = function (pollCode) {
+  // return polls.hasOwnProperty(pollId);
+  return db.query('SELECT * FROM polls WHERE code = $1', [pollCode])
+    .then(res => {
+      return res.rows.length > 0;
+    })
 }
+module.exports.pollExists = pollExists;
 
 function randomCode() {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

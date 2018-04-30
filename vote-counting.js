@@ -1,25 +1,27 @@
 function tallyVotes (votes, options) {
-
-  options = options.map( o => o.text)
+//   options = options.map( o => {
+//     return o.text
+    
+//   } 
+// )
 
   if (options.length === 1) {
     const option = options[0];
-    const numberOfVotes = Object.values(votes).filter(rank => rank.includes(options[0])).length;
-    const percentageOfVotes = Object.keys(votes).length / numberOfVotes;
+    const numberOfVotes = votes.filter(rank => rank.includes(option)).length;
+    const percentageOfVotes = votes.length / numberOfVotes;
 
     return { option, numberOfVotes, percentageOfVotes}
   }
-  const voters = Object.keys(votes);
 
   let remainingOptions = options.slice();
   
   // create a tally object
   const tally = remainingOptions.reduce((acc, id) => Object.assign({[id]: 0}, acc), {})
   
-  // iterate over voters
-  for (let voter of voters) {
+  // iterate over votes
+  for (let vote of votes) {
     // iterate over the ranked votes
-    for (let choice of votes[voter]) {
+    for (let choice of vote) {
       // if the vote is for an option that remains,
       if (remainingOptions.includes(choice)) {
         // increment the tally for that option
@@ -39,11 +41,11 @@ function tallyVotes (votes, options) {
   const tieForHighest = Object.values(tally).filter(e => e === highestCount).length > 1;
 
   // if the highest vote count is a majority, return result object
-  if (!tieForHighest && highestCount >= voters.length / 2) {
+  if (!tieForHighest && highestCount >= votes.length / 2) {
     return {
       option: winningOption,
       numberOfVotes: highestCount,
-      percentageOfVotes:  highestCount / voters.length,
+      percentageOfVotes:  highestCount / votes.length,
     }
   } else {
     // if not
@@ -64,7 +66,7 @@ function tallyVotes (votes, options) {
 }
 
 function tieBreaker(votes, options) {
-  const rankings = Object.values(votes);
+  const rankings = votes;
   const longestRankingLength = Math.max(...rankings.map(arr => arr.length));
 
   // create tally object
@@ -74,7 +76,6 @@ function tieBreaker(votes, options) {
 
   // iterate over ranks (1st, 2nd, 3rd)
   for (let i = 0; i < longestRankingLength; i++) {
-
     // iterate over array of rankings
     for (let ranking of rankings) {
       // if the choice is in options, increment its tally

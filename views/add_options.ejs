@@ -8,8 +8,8 @@
 
 <p>
   This poll is open for suggestions for another 
-  <%= Math.floor((poll.submitTimeEnd - Date.now()) / 60000) %> minute(s). After that, you'll have
-  <%= Math.floor((poll.voteTimeEnd - poll.submitTimeEnd)) / 60000 %> minutes to cast your votes.
+  <%= Math.floor((poll.submit_time_end - Date.now()) / 60000) %> minute(s). After that, you'll have
+  <%= Math.floor((poll.vote_time_end - poll.submit_time_end)) / 60000 %> minutes to cast your votes.
 </p>
 <% const url = `${hostname}/${poll.code}`; %>
 <p>Use poll code <code><%= poll.code %></code> to particpate, or go to <a href="/<%= poll.code %>"><%= url %></a>.</p>
