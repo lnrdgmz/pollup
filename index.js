@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
+const http = require('http');
 const router = require('./routes');
 
 
@@ -140,8 +141,34 @@ app.use(router);
 //   res.redirect('/poll/' + req.params.code);
 // })
 
-app.listen(8080, () => {
-  console.log('Listening on port 8080.')
+// app.listen(8080, () => {
+//   console.log('Listening on port 8080.')
+// })
+
+const server = http.createServer(app);
+
+server.listen(process.env.PORT || 8080);
+
+
+const WebSocket = require('ws');
+
+
+
+const wss = new WebSocket.Server({ server: server })
+
+wss.addListener('connection', (ws) => {
+  ws.addListener('message', (msg) => {
+    console.log(msg)
+    if (msg === 'broadcast') {
+      wss.clients.forEach(ws => {
+        ws.send('THIS IS A BROADCAST')
+      })
+    } else {
+      ws.send('ok')
+    }
+  })
+  console.log('connection open')
+  ws.send('hello')
 })
 
 
