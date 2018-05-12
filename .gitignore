@@ -6,3 +6,4 @@ public/main.js
 app.yaml
 
 .env
+cloud_sql_proxy

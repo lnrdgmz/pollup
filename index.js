@@ -6,6 +6,7 @@ const router = require('./routes');
 
 
 const app = express();
+app.enable('trust proxy')
 
 app.locals.shuffle = require('lodash').shuffle
 
