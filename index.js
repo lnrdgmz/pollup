@@ -3,11 +3,18 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const http = require('http');
-const router = require('./routes');
 
 
 const app = express();
 app.enable('trust proxy')
+
+const server = http.createServer(app);
+
+server.listen(process.env.PORT || 8080);
+
+
+const wss = require('./ws-server')(server);
+const router = require('./routes')(wss);
 
 app.locals.shuffle = require('lodash').shuffle
 
@@ -145,31 +152,25 @@ app.use(router);
 //   console.log('Listening on port 8080.')
 // })
 
-const server = http.createServer(app);
-
-server.listen(process.env.PORT || 8080);
-
-
-const WebSocket = require('ws');
 
 
 
-const wss = new WebSocket.Server({ server: server })
+// const wss = new WebSocket.Server({ server: server })
 
-wss.addListener('connection', (ws) => {
-  ws.addListener('message', (msg) => {
-    console.log(msg)
-    if (msg === 'broadcast') {
-      wss.clients.forEach(ws => {
-        ws.send('THIS IS A BROADCAST')
-      })
-    } else {
-      ws.send('ok')
-    }
-  })
-  console.log('connection open')
-  ws.send('hello')
-})
+// wss.addListener('connection', (ws) => {
+//   ws.addListener('message', (msg) => {
+//     console.log(msg)
+//     if (msg === 'broadcast') {
+//       wss.clients.forEach(ws => {
+//         ws.send('THIS IS A BROADCAST')
+//       })
+//     } else {
+//       ws.send('ok')
+//     }
+//   })
+//   console.log('connection open')
+//   ws.send('hello')
+// })
 
 
 // function randomCode() {

@@ -108,6 +108,12 @@ pollRouter.post('/', verifyCodeExists, (req, res) => {
     // fakeDb.polls[code].options.push(newOptions);
   }
 
+  wss.clients.forEach(ws => {
+    if (ws.protocol === code) {
+      ws.send(JSON.stringify(newOptions))
+    }
+  })
+
   res.redirect('/' + code)
 })
 
@@ -129,5 +135,8 @@ pollRouter.post('/vote', verifyCodeExists, (req, res) => {
   res.redirect('/' + code);
 })
 
-
-module.exports = router;
+let wss;
+module.exports = (server) => {
+  wss = server;
+  return router;
+} 

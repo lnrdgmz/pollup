@@ -118,3 +118,43 @@ addEventHandler('new-choice-input', 'keypress', enterKeyPressHandler);
 addEventHandler('initial-option-input', 'keypress', enterKeyPressHandler);
 
 addEventHandler('code-form', 'submit', goToPollHandler);
+
+
+/*****************
+ * WebSockets connection
+ ****************/
+
+
+// window.makeWebSocketConnection = function (code) {
+if (document.getElementById('new-choices-list')) {
+  const code = location.pathname.match(/\/(\D\D\D\D)/)[1]
+  const ws = new WebSocket('ws://localhost:8080', code);
+
+  ws.addEventListener('open', () => {
+    console.log('Websocket connection open')
+  })
+
+  ws.addEventListener('message', event => {
+    function createListElement (text) {
+      const listElement = document.createElement('li');
+      listElement.innerText = text;
+      return listElement;
+    }
+    console.log(event.data);
+    const data = JSON.parse(event.data);
+    const list = document.getElementById('current-choices-list');
+    if (Array.isArray(data)) {
+      data.forEach(choice => {
+        const li = createListElement(choice);
+        list.appendChild(li);
+      })
+    } else {
+      list.appendChild(createListElement(data));
+    }
+  })
+
+  window.addEventListener('beforeunload', () => {
+    ws.close();
+  })
+  
+}
