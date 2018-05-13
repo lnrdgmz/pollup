@@ -1,9 +1,4 @@
 function tallyVotes (votes, options) {
-//   options = options.map( o => {
-//     return o.text
-    
-//   } 
-// )
 
   if (options.length === 1) {
     const option = options[0];
@@ -17,22 +12,17 @@ function tallyVotes (votes, options) {
   
   // create a tally object
   const tally = remainingOptions.reduce((acc, id) => Object.assign({[id]: 0}, acc), {})
-  
-  // iterate over votes
+ 
+  // Build up the tally by recording each voters highest ranked reminaing choice
   for (let vote of votes) {
-    // iterate over the ranked votes
     for (let choice of vote) {
-      // if the vote is for an option that remains,
       if (remainingOptions.includes(choice)) {
-        // increment the tally for that option
         tally[choice]++;
-        // exit vote iteration
         break;
       }
     }
   }
 
-  // get highest vote count
   const highestCount = Math.max(...Object.values(tally));
   const winningOption = remainingOptions.reduce((acc, option) => {
     if (tally[option] > tally[acc]) return option;
@@ -48,9 +38,8 @@ function tallyVotes (votes, options) {
       percentageOfVotes:  highestCount / votes.length,
     }
   } else {
-    // if not
+    // if not, remove lowest vote counts
     const lowestCount = Math.min(...Object.values(tally));
-    // remove lowest vote counts
     const updatedOptions = remainingOptions.filter(option => {
       return tally[option] !== lowestCount;
     })

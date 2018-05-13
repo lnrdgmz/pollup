@@ -55,7 +55,6 @@ async function generateUniqueCode() {
 }
 
 const pollExists = function (pollCode) {
-  // return polls.hasOwnProperty(pollId);
   return db.query('SELECT * FROM polls WHERE code = $1', [pollCode])
     .then(res => {
       return res.rows.length > 0;

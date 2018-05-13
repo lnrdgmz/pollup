@@ -6,21 +6,19 @@ const votes = require('./model/votes');
 const Router = require('express').Router;
 
 const router = Router();
-// const fakeDb = {
-//   polls: {},
-// }
 
 router.get('/', (req, res) => {
   res.render('landing')
 })
 
-
 router.get('/create', (req, res) => {
   res.render('new-poll')
 })
+
 function minutesToMilliseconds(mins) {
   return mins * 60000;
 }
+
 router.post('/create', (req, res) => {
   const options = req.body['poll-option'] || [];
 
@@ -69,6 +67,7 @@ pollRouter.get('/', verifyCodeExists, async function(req, res) {
   const time = Date.now();
 
   if (time > poll.vote_time_end) {
+    // render results page
     const pollVotes = await votes.getVotesForPoll(code);
     const results = tallyVotes(pollVotes, pollChoices.map(o => o.text));
     res.render('results', { results, poll });
@@ -100,12 +99,8 @@ pollRouter.post('/', verifyCodeExists, (req, res) => {
   const code = req.pollCode;
   if (Array.isArray(newOptions)) {
     choices.addChoices(code, req.session.id, newOptions)
-    // newOptions.forEach(option => {
-    //   fakeDb.polls[code].options.push(option);
-    // })
   } else {
     choices.addChoices(code, req.session.id, [newOptions])
-    // fakeDb.polls[code].options.push(newOptions);
   }
 
   wss.clients.forEach(ws => {
@@ -119,7 +114,6 @@ pollRouter.post('/', verifyCodeExists, (req, res) => {
 
 pollRouter.post('/vote', verifyCodeExists, (req, res) => {
   const code = req.pollCode;
-  // const poll = fakeDb.polls[code];
 
   let ranking;
 
@@ -129,7 +123,6 @@ pollRouter.post('/vote', verifyCodeExists, (req, res) => {
     ranking = [req.body['votes']];
   }
 
-  // poll.votes[req.session.id] = ranking;
   votes.addVote(code,req.session.id, ranking);
 
   res.redirect('/' + code);

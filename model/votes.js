@@ -1,5 +1,4 @@
 const db = require('./db');
-// const votes = {};
 
 function votesRowsToVoteObject (rows) {
   return rows.reduce((acc, row) => {
