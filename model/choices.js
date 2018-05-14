@@ -37,6 +37,7 @@ module.exports.addChoices = function (pollCode, userId, choices) {
     })
     .then(res => {
       client.release();
+      return res;
     })
     .catch(err => {
       client.release();

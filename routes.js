@@ -25,18 +25,25 @@ router.post('/create', (req, res) => {
   const submissionsTime = parseInt(req.body['poll-submit-time'])
   const voteTime = parseInt(req.body['poll-vote-time'])
 
+  let code;
+
   return polls.addPoll({
     question: req.body['poll-question'],
     submitTimeEnd: minutesToMilliseconds(submissionsTime) + Date.now(),
     voteTimeEnd: minutesToMilliseconds(voteTime + submissionsTime) + Date.now(),
     user: req.session.id,
   })
-  .then(code => {
-    choices.addChoices(code, req.session.id, Array.isArray(options) ? options : [options])
-  
+  .then(code0 => {
+    code = code0;
+    return choices.addChoices(code, req.session.id, Array.isArray(options) ? options : [options])
+  })
+  .then(result => {
     res.redirect('/' + code)
   })
-
+  .catch(err => {
+    console.error(err);
+    res.code(500).send('There was a problem creating the poll.')
+  })
 })
 
 function verifyCodeExists(req, res, next) {
@@ -95,21 +102,24 @@ pollRouter.get('/', verifyCodeExists, async function(req, res) {
 
 
 pollRouter.post('/', verifyCodeExists, (req, res) => {
-  const newOptions = req.body['poll-new-options'];
+  let newOptions = req.body['poll-new-options'];
   const code = req.pollCode;
-  if (Array.isArray(newOptions)) {
-    choices.addChoices(code, req.session.id, newOptions)
-  } else {
-    choices.addChoices(code, req.session.id, [newOptions])
+  if (!Array.isArray(newOptions)) {
+    newOptions = [ newOptions ];
   }
-
-  wss.clients.forEach(ws => {
-    if (ws.protocol === code) {
-      ws.send(JSON.stringify(newOptions))
-    }
-  })
-
-  res.redirect('/' + code)
+  return choices.addChoices(code, req.session.id, newOptions)
+    .then(result => {
+      wss.clients.forEach(ws => {
+        if (ws.protocol === code) {
+          ws.send(JSON.stringify(newOptions))
+        }
+      })
+      res.redirect('/' + code)
+    })
+    .catch(err => {
+      console.error(err);
+      res.code(500).send('There was an error writing to the database.')
+    })
 })
 
 pollRouter.post('/vote', verifyCodeExists, (req, res) => {
