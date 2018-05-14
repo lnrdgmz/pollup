@@ -140,7 +140,6 @@ if (document.getElementById('new-choices-list')) {
       listElement.innerText = text;
       return listElement;
     }
-    console.log(event.data);
     const data = JSON.parse(event.data);
     const list = document.getElementById('current-choices-list');
     if (Array.isArray(data)) {
