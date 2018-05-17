@@ -128,7 +128,7 @@ addEventHandler('code-form', 'submit', goToPollHandler);
 // window.makeWebSocketConnection = function (code) {
 if (document.getElementById('new-choices-list')) {
   const code = location.pathname.match(/\/(\D\D\D\D)/)[1]
-  const ws = new WebSocket('ws://localhost:8080', code);
+  const ws = new WebSocket(`ws://${location.host}`, code);
 
   ws.addEventListener('open', () => {
     console.log('Websocket connection open')
