@@ -1,96 +1,122 @@
-function tallyVotes (votes, options) {
+const _ = require('lodash');
 
-  if (options.length === 1) {
-    const option = options[0];
-    const numberOfVotes = votes.filter(rank => rank.includes(option)).length;
-    const percentageOfVotes = votes.length / numberOfVotes;
 
-    return { option, numberOfVotes, percentageOfVotes}
-  }
+function tallyVotes(votes, choices) {
+  const winner = findCondorcetWinner(votes, choices) || findPointBasedWinner(votes, choices);
 
-  let remainingOptions = options.slice();
-  
-  // create a tally object
-  const tally = remainingOptions.reduce((acc, id) => Object.assign({[id]: 0}, acc), {})
- 
-  // Build up the tally by recording each voters highest ranked reminaing choice
-  for (let vote of votes) {
-    for (let choice of vote) {
-      if (remainingOptions.includes(choice)) {
-        tally[choice]++;
-        break;
-      }
-    }
-  }
-
-  const highestCount = Math.max(...Object.values(tally));
-  const winningOption = remainingOptions.reduce((acc, option) => {
-    if (tally[option] > tally[acc]) return option;
-    else return acc;
-  })
-  const tieForHighest = Object.values(tally).filter(e => e === highestCount).length > 1;
-
-  // if the highest vote count is a majority, return result object
-  if (!tieForHighest && highestCount >= votes.length / 2) {
-    return {
-      option: winningOption,
-      numberOfVotes: highestCount,
-      percentageOfVotes:  highestCount / votes.length,
-    }
-  } else {
-    // if not, remove lowest vote counts
-    const lowestCount = Math.min(...Object.values(tally));
-    const updatedOptions = remainingOptions.filter(option => {
-      return tally[option] !== lowestCount;
-    })
-
-    // if highestCount and lowestCount are equal, recursing won't help.
-    if (highestCount === lowestCount) {
-      return tieBreaker(votes, options)
-    }
-
-    // recurse over updated options
-    return tallyVotes(votes, updatedOptions);
+  const numVotes = votes.reduce((acc, ballot) => ballot.includes(winner) ? acc + 1 : acc, 0)
+  const percentage = numVotes / votes.length
+  return {
+    option: winner,
+    numberOfVotes: numVotes,
+    percentageOfVotes: percentage,
   }
 }
 
-function tieBreaker(votes, options) {
-  const rankings = votes;
-  const longestRankingLength = Math.max(...rankings.map(arr => arr.length));
+function findPointBasedWinner(votes, choices) {
+  // record points in an object
+  const points = {};
+  for (const choice of choices) {
+    points[choice] = 0;
+  }
+  let greatestPoints = 0;
 
-  // create tally object
-  const tally = options.reduce((acc, key) => Object.assign({[key]: 0}, acc), {})
+  // iterate through ballots
+  for (const ballot of votes) {
+    // iterate through each choice in a ballot
+    for (let i = 0; i < ballot.length; i++) {
+      // increment that choice's points by 1/(i + 1)
+      points[ballot[i]] += 1 / (i + 1);
 
-
-
-  // iterate over ranks (1st, 2nd, 3rd)
-  for (let i = 0; i < longestRankingLength; i++) {
-    // iterate over array of rankings
-    for (let ranking of rankings) {
-      // if the choice is in options, increment its tally
-      const choice = ranking[i];
-      if (choice && options.includes(choice)) {
-        tally[choice]++
-      }
-    }
-    // if a single choice is in the lead, return it
-    const totals = Object.values(tally);
-    const highestTotal = Math.max(...totals);
-    if (totals.filter(t => t === highestTotal).length === 1) {
-      const option = options.filter(o => tally[o] === highestTotal)[0];
-      const numberOfVotes = rankings.reduce((acc, ranking) => {
-        if (ranking.includes(option)) return acc + 1;
-        else return acc;
-      }, 0)
-      const percentageOfVotes = numberOfVotes / rankings.length;
-      return {
-        option,
-        numberOfVotes,
-        percentageOfVotes,
+      if (points[ballot[i]] > greatestPoints) {
+        greatestPoints = points[ballot[i]];
       }
     }
   }
-  console.error('\n\n***\nOh shit, something went wrong.\n***\n')
+  
+  const winners = _.map(points, (val, key) => ({choice: key, points: val}))
+  .filter(choice => choice.points === greatestPoints);
+  
+  // if there is a clear winner, return that choice
+  if (winners.length === 1) {
+    return winners[0].choice
+  } else {
+    // if there's a tie, choose a random choice from highest scoring
+    const randomIndex = _.random(0, winners.length - 1);
+    return winners[randomIndex].choice;
+  }
+
+
+}
+
+function findCondorcetWinner(votes, choices) {
+  // make an empty matrix using the choices array
+  // iterate through votes and add them to the matrix
+  const results = votes.reduce(function (acc, ballot) {
+    return addMatrices(acc, ballotToMatrix(ballot, choices))
+  }, makeZeroMatrix(choices.length))
+  return findWinnerInMatrix(results, choices);
+}
+
+function findWinnerInMatrix(matrix, choices) {
+  for (let i = 0; i < choices.length; i++) {
+    for (let j = 0; j < choices.length; j++) {
+      if (matrix[i][j] < matrix[j][i]) {
+        // If this choices ever gets beaten, break out of the inner loop, avoiding the return statement
+        break;
+      } else if (j === choices.length - 1) {
+        // If we make it to the end of the row, this choice is the condorcet winner
+        return choices[i]
+      }
+    }
+  }
+  // If we reach this point, there is no condorcet winner and a winner needs to be determined by other means.
+  return null
+}
+
+function makeEmptyMatrix(length) {
+  return Array(length).fill(undefined).map((_, i) => {
+    const row = Array(length).fill(undefined);
+    row[i] = 0;
+    return row
+  })
+}
+
+function makeZeroMatrix(length) {
+  return Array(length).fill(undefined).map((_, i) => {
+    return Array(length).fill(0);
+  })
+
+}
+
+function ballotToMatrix(ballot, choices) {
+  const matrix = makeEmptyMatrix(choices.length);
+  for (let vote of ballot) {
+    const i = choices.indexOf(vote);
+    // switch all undefined values to 1 in this candidate's row
+    matrix[i].forEach(function (value, col, collection) {
+      if (value === undefined) {
+        collection[col] = 1;
+      }
+    })
+    // then switch all undefined values to 0 in the column
+    matrix.forEach(function (row, index) {
+      if (row[i] === undefined) {
+        row[i] = 0;
+      }
+    })
+  }
+  return matrix;
+}
+
+function addMatrices(left, right) {
+  const result = left.map(function (row, index) {
+    const newRow = row.map(function (elem, j) {
+      return elem + right[index][j];
+    })
+    return newRow;
+  })
+  return result;
 }
 
 module.exports = { tallyVotes }
