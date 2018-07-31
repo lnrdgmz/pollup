@@ -19,10 +19,10 @@ app.locals.shuffle = require('lodash').shuffle
 app.use(session({
   secret: 'JjlkjIIIJII99;,;akK',
 }))
-app.use(express.static(__dirname + '/public'))
+app.use(express.static(__dirname + '/../public'))
 app.use(bodyParser.urlencoded())
 app.use(router);
 
-app.set('views', './views')
+app.set('views', __dirname + '/views')
 app.set('view engine', 'ejs')
 
